@@ -6,25 +6,27 @@ import os
 app = Flask(__name__)
 app.secret_key = "secret123"
 
-# Database connection
-db = mysql.connector.connect(
-     host=os.getenv("MYSQLHOST"),
-    user=os.getenv("MYSQLUSER"),
-    password=os.getenv("MYSQLPASSWORD"),
-    database=os.getenv("MYSQLDATABASE"),
-    port=int(os.getenv("MYSQLPORT", 3306))
+# ---------------- DATABASE ----------------
+def get_db():
+    return mysql.connector.connect(
+        host=os.getenv("MYSQLHOST"),
+        user=os.getenv("MYSQLUSER"),
+        password=os.getenv("MYSQLPASSWORD"),
+        database=os.getenv("MYSQLDATABASE"),
+        port=int(os.getenv("MYSQLPORT", 3306))
+    )
 
-)
-
-cursor = db.cursor()
-
+# ---------------- HOME ----------------
 @app.route('/')
 def home():
     return render_template('index.html')
 
-# Signup
+# ---------------- SIGNUP ----------------
 @app.route('/signup', methods=['POST'])
 def signup():
+    db = get_db()
+    cursor = db.cursor()
+
     name = request.form['name']
     email = request.form['email']
     password = request.form['password']
@@ -33,13 +35,19 @@ def signup():
         "INSERT INTO customer (name, email, password) VALUES (%s, %s, %s)",
         (name, email, password)
     )
+
     db.commit()
+    cursor.close()
+    db.close()
 
     return redirect(url_for('home'))
 
-# Login
+# ---------------- LOGIN ----------------
 @app.route('/login', methods=['POST'])
 def login():
+    db = get_db()
+    cursor = db.cursor()
+
     email = request.form['email']
     password = request.form['password']
 
@@ -50,44 +58,49 @@ def login():
 
     user = cursor.fetchone()
 
+    cursor.close()
+    db.close()
+
     if user:
-        session['user'] = user[2]
+        session['user'] = user[1]  # assuming name is at index 1
         return redirect(url_for('dashboard'))
     else:
         return "Invalid Login"
 
-# Dashboard
+# ---------------- DASHBOARD ----------------
 @app.route('/dashboard')
 def dashboard():
     if 'user' in session:
         return render_template('dashboard.html', name=session['user'])
     return redirect(url_for('home'))
 
-# Logout
+# ---------------- LOGOUT ----------------
 @app.route('/logout')
 def logout():
     session.pop('user', None)
     return redirect(url_for('home'))
 
-# Job Matching (C++)
+# ---------------- C++ JOB MATCHING ----------------
 @app.route('/match', methods=['POST'])
 def match():
     skills = request.form['skill']
-    if os.name == 'nt':  # Windows
-        exe_file = 'matcher.exe'
-    else:  # Linux
-        exe_file = './matcher'
-    process = subprocess.Popen(
-    [exe_file],
-    stdin=subprocess.PIPE,
-    stdout=subprocess.PIPE,
-    text=True)
 
+    exe_file = './matcher' if os.name != 'nt' else 'matcher.exe'
+
+    process = subprocess.Popen(
+        [exe_file],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        text=True
+    )
 
     output, _ = process.communicate(skills)
 
     return render_template('result.html', job=output)
 
-app.run(debug=True)
+# ---------------- RUN APP ----------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+
+
+    
