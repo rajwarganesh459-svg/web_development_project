@@ -38,7 +38,6 @@ def signup():
         )
 
         db.commit()
-
         cursor.close()
         db.close()
 
@@ -73,8 +72,7 @@ def login():
             return "Invalid Login"
 
     except Exception as e:
-        return f"Error: {str(e)}"
-
+        return f"Login Error: {str(e)}"
 # ---------------- DASHBOARD ----------------
 @app.route('/dashboard')
 def dashboard():
