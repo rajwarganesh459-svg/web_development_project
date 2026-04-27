@@ -24,48 +24,56 @@ def home():
 # ---------------- SIGNUP ----------------
 @app.route('/signup', methods=['POST'])
 def signup():
-    db = get_db()
-    cursor = db.cursor()
+    try:
+        db = get_db()
+        cursor = db.cursor()
 
-    name = request.form['name']
-    email = request.form['email']
-    password = request.form['password']
+        name = request.form['name']
+        email = request.form['email']
+        password = request.form['password']
 
-    cursor.execute(
-        "INSERT INTO customer (name, email, password) VALUES (%s, %s, %s)",
-        (name, email, password)
-    )
+        cursor.execute(
+            "INSERT INTO customer (name, email, password) VALUES (%s, %s, %s)",
+            (name, email, password)
+        )
 
-    db.commit()
-    cursor.close()
-    db.close()
+        db.commit()
 
-    return redirect(url_for('home'))
+        cursor.close()
+        db.close()
 
+        return redirect(url_for('home'))
+
+    except Exception as e:
+        return f"Signup Error: {str(e)}"
 # ---------------- LOGIN ----------------
 @app.route('/login', methods=['POST'])
 def login():
-    db = get_db()
-    cursor = db.cursor()
+    try:
+        db = get_db()
+        cursor = db.cursor()
 
-    email = request.form['email']
-    password = request.form['password']
+        email = request.form['email']
+        password = request.form['password']
 
-    cursor.execute(
-        "SELECT * FROM customer WHERE email=%s AND password=%s",
-        (email, password)
-    )
+        cursor.execute(
+            "SELECT name FROM customer WHERE email=%s AND password=%s",
+            (email, password)
+        )
 
-    user = cursor.fetchone()
+        user = cursor.fetchone()
 
-    cursor.close()
-    db.close()
+        cursor.close()
+        db.close()
 
-    if user:
-        session['user'] = user[1]  # assuming name is at index 1
-        return redirect(url_for('dashboard'))
-    else:
-        return "Invalid Login"
+        if user:
+            session['user'] = user[0]
+            return redirect(url_for('dashboard'))
+        else:
+            return "Invalid Login"
+
+    except Exception as e:
+        return f"Error: {str(e)}"
 
 # ---------------- DASHBOARD ----------------
 @app.route('/dashboard')
