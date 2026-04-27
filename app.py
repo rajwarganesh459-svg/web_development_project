@@ -6,84 +6,109 @@ import os
 app = Flask(__name__)
 app.secret_key = "secret123"
 
-# Database connection
-db = mysql.connector.connect(
-    host="127.0.0.1",
-    user="ganesh",
-    password="123Ganesh",
-    database="job_portal"
-)
+# ---------------- DATABASE ----------------
+def get_db():
+    return mysql.connector.connect(
+        host=os.getenv("MYSQLHOST"),
+        user=os.getenv("MYSQLUSER"),
+        password=os.getenv("MYSQLPASSWORD"),
+        database=os.getenv("MYSQLDATABASE"),
+        port=int(os.getenv("MYSQLPORT", 3306))
+    )
 
-cursor = db.cursor()
-
+# ---------------- HOME ----------------
 @app.route('/')
 def home():
     return render_template('index.html')
 
-# Signup
+# ---------------- SIGNUP ----------------
 @app.route('/signup', methods=['POST'])
 def signup():
-    name = request.form['name']
-    email = request.form['email']
-    password = request.form['password']
+    try:
+        db = get_db()
+        cursor = db.cursor()
 
-    cursor.execute(
-        "INSERT INTO customer (name, email, password) VALUES (%s, %s, %s)",
-        (name, email, password)
-    )
-    db.commit()
+        name = request.form['name']
+        email = request.form['email']
+        password = request.form['password']
 
-    return redirect(url_for('home'))
+        cursor.execute(
+            "INSERT INTO customer (name, email, password) VALUES (%s, %s, %s)",
+            (name, email, password)
+        )
 
-# Login
+        db.commit()
+
+        cursor.close()
+        db.close()
+
+        return redirect(url_for('home'))
+
+    except Exception as e:
+        return f"Signup Error: {str(e)}"
+# ---------------- LOGIN ----------------
 @app.route('/login', methods=['POST'])
 def login():
-    email = request.form['email']
-    password = request.form['password']
+    try:
+        db = get_db()
+        cursor = db.cursor()
 
-    cursor.execute(
-        "SELECT * FROM customer WHERE email=%s AND password=%s",
-        (email, password)
-    )
+        email = request.form['email']
+        password = request.form['password']
 
-    user = cursor.fetchone()
+        cursor.execute(
+            "SELECT name FROM customer WHERE email=%s AND password=%s",
+            (email, password)
+        )
 
-    if user:
-        session['user'] = user[2]
-        return redirect(url_for('dashboard'))
-    else:
-        return "Invalid Login"
+        user = cursor.fetchone()
 
-# Dashboard
+        cursor.close()
+        db.close()
+
+        if user:
+            session['user'] = user[0]
+            return redirect(url_for('dashboard'))
+        else:
+            return "Invalid Login"
+
+    except Exception as e:
+        return f"Error: {str(e)}"
+
+# ---------------- DASHBOARD ----------------
 @app.route('/dashboard')
 def dashboard():
     if 'user' in session:
         return render_template('dashboard.html', name=session['user'])
     return redirect(url_for('home'))
 
-# Logout
+# ---------------- LOGOUT ----------------
 @app.route('/logout')
 def logout():
     session.pop('user', None)
     return redirect(url_for('home'))
 
-# Job Matching (C++)
+# ---------------- C++ JOB MATCHING ----------------
 @app.route('/match', methods=['POST'])
 def match():
     skills = request.form['skill']
-    if os.name == 'nt':  # Windows
-        exe_file = 'matcher.exe'
-    else:  # Linux
-        exe_file = './matcher'
-    process = subprocess.Popen(
-    [exe_file],
-    stdin=subprocess.PIPE,
-    stdout=subprocess.PIPE,
-    text=True)
 
+    exe_file = './matcher' if os.name != 'nt' else 'matcher.exe'
+
+    process = subprocess.Popen(
+        [exe_file],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        text=True
+    )
 
     output, _ = process.communicate(skills)
 
     return render_template('result.html', job=output)
 
-app.run(debug=True)
+# ---------------- RUN APP ----------------
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+
+
+    
