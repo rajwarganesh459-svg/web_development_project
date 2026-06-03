@@ -8,6 +8,11 @@
     <link rel="stylesheet" href="static/style.css">
 </head>
 <body id="main">
+    {% if signup_success %}
+<script>
+    alert("Account created successfully!");
+</script>
+{% endif %}
     <header>
         <h1>Job Portal</h1>
     </header>

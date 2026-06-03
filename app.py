@@ -41,7 +41,7 @@ def signup():
         cursor.close()
         db.close()
 
-        return redirect(url_for('home'))
+        return render_template("index.html", signup_success=True)
 
     except Exception as e:
         return f"Signup Error: {str(e)}"
