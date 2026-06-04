@@ -61,7 +61,7 @@ def login():
         )
 
         #user = cursor.fetchone()
-        cursor = db.cursor(buffered=True)
+        user = db.cursor(buffered=True)
 
 
         cursor.close()
