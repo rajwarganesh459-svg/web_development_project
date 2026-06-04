@@ -1,3 +1,3 @@
 function signup(){
-        console.log("sign up succesfully");
+        alert("sign up succesfully");
     }
