@@ -60,7 +60,9 @@ def login():
             (email, password)
         )
 
-        user = cursor.fetchone()
+        #user = cursor.fetchone()
+        cursor = db.cursor(buffered=True)
+
 
         cursor.close()
         db.close()
