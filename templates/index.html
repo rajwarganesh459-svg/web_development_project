@@ -7,7 +7,6 @@
    
     <link rel="stylesheet" href="static/style.css">
 </head>
-<script src="static/script.js"></script>
 <script src="{{ url_for('static', filename='script.js') }}"></script>
 <body id="main">
     {% if signup_success %}
@@ -26,7 +25,7 @@
 <input type="text" name="name" placeholder="Name"requred="true"class="text"><br>
 <input type="email" name="email" placeholder="Email"class="text"required="true"><br>
 <input type="password" name="password" placeholder="Pass"class="text"required="true"><br>
-<input type="submit" value="Signup"id="sgn"onclick="signup()">
+<input type="submit" value="Signup"id="sgn">
 </form>
     </section>
 
