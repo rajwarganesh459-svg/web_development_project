@@ -23,8 +23,10 @@ def home():
     return render_template('index.html')
 
 # ---------------- SIGNUP ----------------
-@app.route('/signup', methods=['POST'])
+@app.route('/signup', methods=['GET','POST'])
 def signup():
+    if request.method == 'GET':
+        return redirect(url_for('home')) 
     try:
         db = get_db()
         cursor = db.cursor()
@@ -47,8 +49,10 @@ def signup():
     except Exception as e:
         return f"Signup Error: {str(e)}"
 # ---------------- LOGIN ----------------
-@app.route('/login', methods=['POST'])
+@app.route('/login', methods=['GET','POST'])
 def login():
+    if request.method == 'GET':
+        return redirect(url_for('home'))
     try:
         db = get_db()
         cursor = db.cursor()
