@@ -17,7 +17,7 @@ def get_db():
         port=int(os.getenv("DB_PORT")),
         consume_results=True  #  auto-clears any unread results
     )
-# ---------------- HOME ----------------
+# ---------------- HOME --------------
 @app.route('/')
 def home():
     return render_template('index.html')
