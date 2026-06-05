@@ -15,6 +15,7 @@ def get_db():
         password=os.getenv("DB_PASSWORD"),
         database=os.getenv("DB_NAME"),
         port=int(os.getenv("DB_PORT"))
+        consume_results=True  #  auto-clears any unread results
     )
 # ---------------- HOME ----------------
 @app.route('/')
@@ -60,8 +61,8 @@ def login():
             (email, password)
         )
 
-        #user = cursor.fetchone()
-        user = db.cursor(buffered=True)
+        user = cursor.fetchone()
+        
 
 
         cursor.close()
