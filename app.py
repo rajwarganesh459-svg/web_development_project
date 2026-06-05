@@ -62,9 +62,6 @@ def login():
         )
 
         user = cursor.fetchone()
-        
-
-
         cursor.close()
         db.close()
 
